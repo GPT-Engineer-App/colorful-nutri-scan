@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
 import Quagga from "quagga";
+import axios from "axios";
 
 const Index = () => {
   const [nutritionalInfo, setNutritionalInfo] = useState(null);
@@ -12,6 +13,23 @@ const Index = () => {
   const [barcodeData, setBarcodeData] = useState(null);
   const { toast } = useToast();
   const scannerRef = useRef(null);
+
+  const fetchNutritionalInfo = async (query) => {
+    try {
+      const response = await axios.get(`https://api.nutritionix.com/v1_1/search/${query}`, {
+        params: {
+          appId: "YOUR_APP_ID",
+          appKey: "YOUR_APP_KEY",
+        },
+      });
+      setNutritionalInfo(response.data.hits[0].fields);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch nutritional information.",
+      });
+    }
+  };
 
   const handleTakePicture = async () => {
     try {
@@ -30,6 +48,7 @@ const Index = () => {
         const dataUrl = canvas.toDataURL("image/png");
         setPhoto(dataUrl);
         stream.getTracks().forEach(track => track.stop());
+        fetchNutritionalInfo("food_image"); // Replace with actual image recognition API call
       });
     } catch (error) {
       toast({
@@ -69,6 +88,7 @@ const Index = () => {
 
     Quagga.onDetected((data) => {
       setBarcodeData(data.codeResult.code);
+      fetchNutritionalInfo(data.codeResult.code);
       Quagga.stop();
       setScanning(false);
     });
