@@ -7,14 +7,33 @@ import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
   const [nutritionalInfo, setNutritionalInfo] = useState(null);
+  const [photo, setPhoto] = useState(null);
   const { toast } = useToast();
 
-  const handleTakePicture = () => {
-    // Implement functionality to capture a photo using the device's camera
-    toast({
-      title: "Feature not implemented",
-      description: "Taking a picture is not yet implemented.",
-    });
+  const handleTakePicture = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const video = document.createElement("video");
+      video.srcObject = stream;
+      video.play();
+
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+
+      video.addEventListener("loadedmetadata", () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL("image/png");
+        setPhoto(dataUrl);
+        stream.getTracks().forEach(track => track.stop());
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Unable to access the camera.",
+      });
+    }
   };
 
   const handleScanBarcode = () => {
@@ -40,6 +59,16 @@ const Index = () => {
           </Button>
         </CardContent>
       </Card>
+      {photo && (
+        <Card className="w-full max-w-md mt-4">
+          <CardHeader>
+            <CardTitle className="text-center text-xl">Captured Photo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <img src={photo} alt="Captured" />
+          </CardContent>
+        </Card>
+      )}
       {nutritionalInfo && (
         <Card className="w-full max-w-md mt-4">
           <CardHeader>
