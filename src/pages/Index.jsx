@@ -1,14 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
+import Quagga from "quagga";
 
 const Index = () => {
   const [nutritionalInfo, setNutritionalInfo] = useState(null);
   const [photo, setPhoto] = useState(null);
+  const [scanning, setScanning] = useState(false);
+  const [barcodeData, setBarcodeData] = useState(null);
   const { toast } = useToast();
+  const scannerRef = useRef(null);
 
   const handleTakePicture = async () => {
     try {
@@ -37,12 +40,47 @@ const Index = () => {
   };
 
   const handleScanBarcode = () => {
-    // Implement functionality to scan a barcode using the device's camera
-    toast({
-      title: "Feature not implemented",
-      description: "Scanning a barcode is not yet implemented.",
+    setScanning(true);
+    Quagga.init({
+      inputStream: {
+        type: "LiveStream",
+        target: scannerRef.current,
+        constraints: {
+          width: 640,
+          height: 480,
+          facingMode: "environment"
+        }
+      },
+      decoder: {
+        readers: ["code_128_reader", "ean_reader", "ean_8_reader", "code_39_reader", "code_39_vin_reader", "codabar_reader", "upc_reader", "upc_e_reader", "i2of5_reader"]
+      }
+    }, (err) => {
+      if (err) {
+        console.error(err);
+        toast({
+          title: "Error",
+          description: "Failed to initialize barcode scanner.",
+        });
+        setScanning(false);
+        return;
+      }
+      Quagga.start();
+    });
+
+    Quagga.onDetected((data) => {
+      setBarcodeData(data.codeResult.code);
+      Quagga.stop();
+      setScanning(false);
     });
   };
+
+  useEffect(() => {
+    return () => {
+      if (scanning) {
+        Quagga.stop();
+      }
+    };
+  }, [scanning]);
 
   return (
     <div className="h-screen w-screen flex flex-col items-center justify-center space-y-4 bg-gradient-to-r from-green-400 to-blue-500">
@@ -54,8 +92,8 @@ const Index = () => {
           <Button variant="outline" onClick={handleTakePicture}>
             Take a Picture of the Food
           </Button>
-          <Button variant="outline" onClick={handleScanBarcode}>
-            Scan a Barcode of the Food
+          <Button variant="outline" onClick={handleScanBarcode} disabled={scanning}>
+            {scanning ? "Scanning..." : "Scan a Barcode of the Food"}
           </Button>
         </CardContent>
       </Card>
@@ -69,6 +107,17 @@ const Index = () => {
           </CardContent>
         </Card>
       )}
+      {barcodeData && (
+        <Card className="w-full max-w-md mt-4">
+          <CardHeader>
+            <CardTitle className="text-center text-xl">Scanned Barcode</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>{barcodeData}</p>
+          </CardContent>
+        </Card>
+      )}
+      <div ref={scannerRef} className="w-full max-w-md mt-4" />
       {nutritionalInfo && (
         <Card className="w-full max-w-md mt-4">
           <CardHeader>
