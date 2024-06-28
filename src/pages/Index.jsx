@@ -22,7 +22,11 @@ const Index = () => {
           appKey: "YOUR_APP_KEY",
         },
       });
-      setNutritionalInfo(response.data.hits[0].fields);
+      const info = response.data.hits[0].fields;
+      setNutritionalInfo(info);
+
+      // Send the nutritional information to the backend
+      await axios.post('http://localhost:5000/api/nutritional-info', info);
     } catch (error) {
       toast({
         title: "Error",
