@@ -103,32 +103,32 @@ const Index = () => {
   }, [scanning]);
 
   return (
-    <div className="h-screen w-screen flex flex-col items-center justify-center space-y-4 bg-gradient-to-r from-green-400 to-blue-500">
-      <Card className="w-full max-w-md">
+    <div className="h-screen w-screen flex flex-col items-center justify-center space-y-4 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 p-4">
+      <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
           <CardTitle className="text-center text-2xl">Food Scanner</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col space-y-4">
-          <Button variant="outline" onClick={handleTakePicture}>
+          <Button variant="outline" onClick={handleTakePicture} className="hover:bg-gray-200">
             Take a Picture of the Food
           </Button>
-          <Button variant="outline" onClick={handleScanBarcode} disabled={scanning}>
+          <Button variant="outline" onClick={handleScanBarcode} disabled={scanning} className="hover:bg-gray-200">
             {scanning ? "Scanning..." : "Scan a Barcode of the Food"}
           </Button>
         </CardContent>
       </Card>
       {photo && (
-        <Card className="w-full max-w-md mt-4">
+        <Card className="w-full max-w-md mt-4 shadow-lg">
           <CardHeader>
             <CardTitle className="text-center text-xl">Captured Photo</CardTitle>
           </CardHeader>
           <CardContent>
-            <img src={photo} alt="Captured" />
+            <img src={photo} alt="Captured" className="rounded-md" />
           </CardContent>
         </Card>
       )}
       {barcodeData && (
-        <Card className="w-full max-w-md mt-4">
+        <Card className="w-full max-w-md mt-4 shadow-lg">
           <CardHeader>
             <CardTitle className="text-center text-xl">Scanned Barcode</CardTitle>
           </CardHeader>
@@ -139,7 +139,7 @@ const Index = () => {
       )}
       <div ref={scannerRef} className="w-full max-w-md mt-4" />
       {nutritionalInfo && (
-        <Card className="w-full max-w-md mt-4">
+        <Card className="w-full max-w-md mt-4 shadow-lg">
           <CardHeader>
             <CardTitle className="text-center text-xl">Nutritional Information</CardTitle>
           </CardHeader>
